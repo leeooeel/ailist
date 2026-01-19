@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI任务管理</title>
+    <style>
+        /* 引入Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        :root {
+            /* 主色调 */
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-light: #e0e7ff;
+            
+            /* 辅助色 */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --yellow: #fbbf24;
+            --pink: #ec4899;
+            
+            /* 中性色 */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --border-color: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            
+            /* 阴影 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            /* 圆角 */
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --radius-xl: 12px;
+            --radius-full: 9999px;
+            
+            /* 过渡效果 */
+            --transition: all 0.2s ease-in-out;
+        }
+        
+        body {
+            background-color: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            font-size: 14px;
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+        
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 220px;
+            background-color: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 10;
+        }
+        
+        /* 滚动条美化 */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-full);
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+        
+        .sidebar-section {
+            padding: 8px 0;
+        }
+        
+        .sidebar-section-title {
+            padding: 12px 16px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            border-radius: var(--radius-md);
+            margin: 0 8px;
+            position: relative;
+        }
+        
+        .sidebar-item:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--primary);
+        }
+        
+        .sidebar-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+        
+        .sidebar-item .icon {
+            margin-right: 10px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        /* 右侧主内容 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 顶部功能栏 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        
+        .menu-toggle:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .search-container {
+            display: flex;
+            align-items: center;
+            width: 320px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 8px 16px;
+            transition: var(--transition);
+        }
+        
+        .search-container:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .search-container .icon {
+            color: var(--text-tertiary);
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        
+        .search-container input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            color: var(--text-primary);
+            outline: none;
+        }
+        
+        .search-container input::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .header-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        
+        .header-btn:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        /* 内容区域 */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg-primary);
+        }
+        
+        /* 内容区域滚动条 */
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .content::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+        
+        .content::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-full);
+        }
+        
+        .content::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+        
+        /* 任务快速添加栏 */
+        .quick-add-bar {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+        }
+        
+        .quick-add-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+            transition: var(--transition);
+        }
+        
+        .quick-add-container:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .quick-add-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            color: var(--text-primary);
+            outline: none;
+        }
+        
+        .quick-add-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .quick-add-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        
+        .action-btn:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .add-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+        
+        .add-btn:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.05);
+        }
+        
+        /* 任务列表区域 */
+        .tasks-section {
+            padding: 24px;
+            min-height: calc(100vh - 180px);
+        }
+        
+        .no-tasks {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 220px);
+            color: var(--text-tertiary);
+            text-align: center;
+        }
+        
+        .no-tasks h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .no-tasks p {
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+        
+        /* 任务卡片 */
+        .task-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: var(--transition);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .task-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+        
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .task-checkbox:hover {
+            border-color: var(--primary);
+        }
+        
+        .task-checkbox.checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .task-title.completed {
+            text-decoration: line-through;
+            color: var(--text-tertiary);
+        }
+        
+        .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .task-meta .icon {
+            margin-right: 4px;
+            font-size: 12px;
+        }
+        
+        /* 标签样式 */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .tag-work {
+            background-color: var(--info);
+        }
+        
+        .tag-life {
+            background-color: var(--success);
+        }
+        
+        .tag-study {
+            background-color: var(--warning);
+        }
+        
+        .tag-health {
+            background-color: var(--error);
+        }
+        
+        /* 图标样式 */
+        .icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            text-align: center;
+            line-height: 16px;
+            transition: var(--transition);
+        }
+        
+        /* 自定义图标 */
+        .icon-ai::before {
+            content: '🤖';
+        }
+        
+        .icon-task::before {
+            content: '📝';
+        }
+        
+        .icon-today::before {
+            content: '📅';
+        }
+        
+        .icon-calendar::before {
+            content: '🗓️';
+        }
+        
+        .icon-board::before {
+            content: '📋';
+        }
+        
+        .icon-quadrant::before {
+            content: '🔄';
+        }
+        
+        .icon-tomato::before {
+            content: '🍅';
+        }
+        
+        .icon-habit::before {
+            content: '✅';
+        }
+        
+        .icon-stats::before {
+            content: '📊';
+        }
+        
+        .icon-search::before {
+            content: '🔍';
+        }
+        
+        .icon-filter::before {
+            content: '⚙️';
+        }
+        
+        .icon-calendar-small::before {
+            content: '📅';
+        }
+        
+        .icon-tag::before {
+            content: '🏷️';
+        }
+        
+        .icon-reminder::before {
+            content: '⏰';
+        }
+        
+        .icon-plus::before {
+            content: '+';
+            font-weight: bold;
+        }
+        
+        /* AI助手页面 */
+        .ai-assistant-page {
+            padding: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .ai-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .ai-header .icon {
+            font-size: 28px;
+        }
+        
+        .ai-welcome {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fcd34d;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .ai-welcome h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .ai-welcome ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .ai-welcome li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            color: var(--text-secondary);
+        }
+        
+        .ai-welcome li::before {
+            content: '✨';
+            position: absolute;
+            left: 0;
+            top: 2px;
+        }
+        
+        .ai-input-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .ai-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .ai-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: var(--transition);
+        }
+        
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .ai-input-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ai-example {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+        
+        .ai-send-btn {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .ai-send-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        /* AI聊天界面样式 */
+        .ai-chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            max-height: 400px;
+        }
+        
+        .ai-chat-history::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .ai-chat-history::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+        
+        .ai-chat-history::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-full);
+        }
+        
+        .ai-chat-history::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+        
+        .ai-message {
+            display: flex;
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .ai-message.user {
+            justify-content: flex-end;
+        }
+        
+        .ai-message.assistant {
+            justify-content: flex-start;
+        }
+        
+        .ai-message .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        
+        .ai-message.user .message-content {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: var(--radius-sm);
+        }
+        
+        .ai-message.assistant .message-content {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: var(--radius-sm);
+        }
+        
+        .ai-message.assistant.loading .message-content {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .ai-message.assistant.error .message-content {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .typing-indicator::after {
+            content: '...';
+            animation: typing 1.5s infinite;
+        }
+        
+        @keyframes typing {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+            
+            .header {
+                padding: 12px 16px;
+            }
+            
+            .search-container {
+                width: 240px;
+            }
+            
+            .quick-add-bar {
+                padding: 12px 16px;
+            }
+            
+            .tasks-section {
+                padding: 16px;
+            }
+        }
+        
+        /* 辅助样式 */
+        .text-sm {
+            font-size: 12px;
+        }
+        
+        .text-gray-500 {
+            color: var(--text-tertiary);
+        }
+        
+        .mb-2 {
+            margin-bottom: 8px;
+        }
+        
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+        
+        .mb-6 {
+            margin-bottom: 24px;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .gap-2 {
+            gap: 8px;
+        }
+        
+        .gap-4 {
+            gap: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">视图</div>
+            <div class="sidebar-item" data-page="ai-assistant">
+                <span class="icon icon-ai"></span>
+                <span>AI助手</span>
+            </div>
+            <div class="sidebar-item active" data-page="all-tasks">
+                <span class="icon icon-task"></span>
+                <span>全部任务</span>
+            </div>
+            <div class="sidebar-item" data-page="today">
+                <span class="icon icon-today"></span>
+                <span>今天</span>
+            </div>
+            <div class="sidebar-item" data-page="calendar">
+                <span class="icon icon-calendar"></span>
+                <span>日历视图</span>
+            </div>
+            <div class="sidebar-item" data-page="board">
+                <span class="icon icon-board"></span>
+                <span>看板视图</span>
+            </div>
+            <div class="sidebar-item" data-page="quadrant">
+                <span class="icon icon-quadrant"></span>
+                <span>四象限</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">功能</div>
+            <div class="sidebar-item" data-page="tomato">
+                <span class="icon icon-tomato"></span>
+                <span>番茄专注</span>
+            </div>
+            <div class="sidebar-item" data-page="habit">
+                <span class="icon icon-habit"></span>
+                <span>习惯打卡</span>
+            </div>
+            <div class="sidebar-item" data-page="stats">
+                <span class="icon icon-stats"></span>
+                <span>数据统计</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">清单</div>
+            <div class="sidebar-item">
+                <span class="icon icon-plus"></span>
+                <span>个人项目</span>
+            </div>
+            <div class="sidebar-item">
+                <span class="icon icon-plus"></span>
+                <span>工作任务</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">标签</div>
+            <div class="sidebar-item tag tag-work">
+                <span>工作</span>
+            </div>
+            <div class="sidebar-item tag tag-life">
+                <span>生活</span>
+            </div>
+            <div class="sidebar-item tag tag-study">
+                <span>学习</span>
+            </div>
+            <div class="sidebar-item tag tag-health">
+                <span>健康</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <button class="menu-toggle">
+                    <span class="icon icon-filter"></span>
+                </button>
+                <div class="search-container">
+                    <span class="icon icon-search"></span>
+                    <input type="text" placeholder="搜索任务...">
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="header-btn">
+                    <span class="icon icon-filter"></span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 快速添加任务栏 -->
+        <div class="quick-add-bar">
+            <div class="quick-add-container">
+                <input 
+                    type="text" 
+                    class="quick-add-input" 
+                    placeholder="快速添加任务...(支持智能识别时间)"
+                    id="quick-task-input"
+                >
+                <div class="quick-add-actions">
+                    <button class="action-btn">
+                        <span class="icon icon-calendar-small"></span>
+                    </button>
+                    <button class="action-btn">
+                        <span class="icon icon-tag"></span>
+                    </button>
+                    <button class="action-btn">
+                        <span class="icon icon-reminder"></span>
+                    </button>
+                    <button class="add-btn" id="add-task-btn">
+                        <span class="icon icon-plus"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 任务列表区域 -->
+        <div class="content" id="content-area">
+            <div class="tasks-section" id="tasks-section">
+                <div class="no-tasks">
+                    <h3>暂无任务</h3>
+                    <p>开始添加你的第一个任务吧！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API配置
+        const API_BASE_URL = 'http://localhost:3001/api';
+        
+        // AI服务函数
+        async function callDeepSeekAPI(userMessage) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: userMessage })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API调用失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.content;
+            } catch (error) {
+                console.error('DeepSeek API调用失败:', error);
+                throw error;
+            }
+        }
+
+        async function parseTaskByAI(userInput) {
+            const systemPrompt = `你是一个任务解析助手。请将用户的自然语言输入解析为结构化的任务数据。
+            
+返回格式必须是JSON对象，包含以下字段：
+- title: 任务标题（字符串）
+- description: 任务描述（字符串，如果没有则为空）
+- dueDate: 截止日期（ISO 8601格式，如"2024-01-20T15:00:00.000Z"，如果没有则为null）
+- priority: 优先级（"low"、"medium"、"high"、"urgent"）
+- tags: 标签数组（如["工作", "重要"]）
+- isImportant: 是否重要（布尔值）
+- isUrgent: 是否紧急（布尔值）
+
+示例：
+输入："明天下午3点客户会议，工作标签，重要"
+输出：
+{
+  "title": "客户会议",
+  "description": "明天下午3点的客户会议",
+  "dueDate": "2024-01-20T15:00:00.000Z",
+  "priority": "high",
+  "tags": ["工作"],
+  "isImportant": true,
+  "isUrgent": false
+}
+
+只返回JSON，不要其他文字。`;
+
+            try {
+                const response = await callDeepSeekAPI(`${systemPrompt}\n\n用户输入：${userInput}`);
+                
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    throw new Error('AI返回的不是有效的JSON格式');
+                }
+                
+                const taskData = JSON.parse(jsonMatch[0]);
+                
+                return {
+                    title: taskData.title || userInput,
+                    description: taskData.description || '',
+                    dueDate: taskData.dueDate || null,
+                    priority: taskData.priority || 'medium',
+                    tags: taskData.tags || [],
+                    isImportant: taskData.isImportant || false,
+                    isUrgent: taskData.isUrgent || false,
+                    status: 'todo'
+                };
+            } catch (error) {
+                console.error('AI解析任务失败:', error);
+                return null;
+            }
+        }
+
+        async function classifyTasksByAI(tasks) {
+            if (!tasks || tasks.length === 0) {
+                return {
+                    importantUrgent: [],
+                    importantNotUrgent: [],
+                    notImportantUrgent: [],
+                    notImportantNotUrgent: []
+                };
+            }
+
+            const systemPrompt = `你是一个任务分类助手。请根据任务的重要性和紧急性将任务分类到四个象限。
+
+返回格式必须是JSON对象，包含以下四个数组：
+- importantUrgent: 重要且紧急的任务ID数组
+- importantNotUrgent: 重要但不紧急的任务ID数组
+- notImportantUrgent: 紧急但不重要的任务ID数组
+- notImportantNotUrgent: 不重要且不紧急的任务ID数组
+
+分类标准：
+- 重要紧急：对目标影响大且时间紧迫
+- 重要不紧急：对目标影响大但时间不紧迫
+- 紧急不重要：时间紧迫但对目标影响小
+- 不重要不紧急：对目标影响小且时间不紧迫
+
+只返回JSON，不要其他文字。`;
+
+            try {
+                const taskList = JSON.stringify(tasks.map(task => ({
+                    id: task._id || task.id,
+                    title: task.title,
+                    priority: task.priority,
+                    dueDate: task.dueDate,
+                    tags: task.tags
+                })));
+
+                const response = await callDeepSeekAPI(`${systemPrompt}\n\n任务列表：${taskList}`);
+                
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    throw new Error('AI返回的不是有效的JSON格式');
+                }
+                
+                const classification = JSON.parse(jsonMatch[0]);
+                
+                const taskMap = {};
+                tasks.forEach(task => {
+                    taskMap[task._id || task.id] = task;
+                });
+                
+                return {
+                    importantUrgent: classification.importantUrgent.map(id => taskMap[id]).filter(Boolean),
+                    importantNotUrgent: classification.importantNotUrgent.map(id => taskMap[id]).filter(Boolean),
+                    notImportantUrgent: classification.notImportantUrgent.map(id => taskMap[id]).filter(Boolean),
+                    notImportantNotUrgent: classification.notImportantNotUrgent.map(id => taskMap[id]).filter(Boolean)
+                };
+            } catch (error) {
+                console.error('AI分类任务失败:', error);
+                return null;
+            }
+        }
+
+        async function getPomodoroPromptByAI(taskTitle) {
+            const systemPrompt = '根据任务标题生成友好的专注提示语，简短有激励性，不超过50字';
+
+            try {
+                return await callDeepSeekAPI(`${systemPrompt}\n\n任务：${taskTitle}`);
+            } catch (error) {
+                console.error('AI生成专注提示语失败:', error);
+                return '保持专注，你可以做到的！';
+            }
+        }
+
+        async function getStatsSummaryByAI(statsData) {
+            const systemPrompt = '分析任务统计数据，生成简洁的自然语言总结，不超过100字';
+
+            try {
+                return await callDeepSeekAPI(`${systemPrompt}\n\n数据：${JSON.stringify(statsData)}`);
+            } catch (error) {
+                console.error('AI生成统计总结失败:', error);
+                return '数据统计完成，继续保持高效工作！';
+            }
+        }
+
+        // 辅助函数：显示成功提示
+        function showSuccessToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // 辅助函数：显示错误提示
+        function showErrorToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #ef4444;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // DOM元素缓存
+        const elements = {
+            sidebarItems: document.querySelectorAll('.sidebar-item'),
+            quickTaskInput: document.getElementById('quick-task-input'),
+            addTaskBtn: document.getElementById('add-task-btn'),
+            contentArea: document.getElementById('content-area'),
+            tasksSection: document.getElementById('tasks-section')
+        };
+        
+        // 导航项点击事件
+        elements.sidebarItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // 移除所有活动状态
+                elements.sidebarItems.forEach(i => {
+                    i.classList.remove('active');
+                });
+                // 添加当前项活动状态
+                this.classList.add('active');
+                
+                // 处理不同页面切换
+                const page = this.getAttribute('data-page');
+                switch(page) {
+                    case 'ai-assistant':
+                        loadAIPage();
+                        break;
+                    case 'all-tasks':
+                        loadAllTasks();
+                        break;
+                    case 'today':
+                        loadTodayTasks();
+                        break;
+                    case 'calendar':
+                        loadCalendarView();
+                        break;
+                    case 'board':
+                        loadBoardView();
+                        break;
+                    case 'quadrant':
+                        loadQuadrantView();
+                        break;
+                    case 'tomato':
+                        loadTomatoTimer();
+                        break;
+                    case 'habit':
+                        loadHabitTracker();
+                        break;
+                    case 'stats':
+                        loadStatistics();
+                        break;
+                }
+            });
+        });
+        
+        // 添加任务事件
+        elements.addTaskBtn.addEventListener('click', addTask);
+        
+        // 快速添加任务输入框回车事件
+        elements.quickTaskInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+        
+        // 添加任务函数
+        async function addTask() {
+            const taskText = elements.quickTaskInput.value.trim();
+            if (!taskText) return;
+            
+            try {
+                // 1. 调用DeepSeek AI解析用户输入
+                const taskData = await parseTaskByAI(taskText);
+                
+                if (taskData) {
+                    // 2. 使用AI解析的数据调用API创建任务
+                    const response = await fetch(`${API_BASE_URL}/tasks`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(taskData)
+                    });
+                    
+                    if (response.ok) {
+                        elements.quickTaskInput.value = '';
+                        showSuccessToast(`已创建任务：${taskData.title}`);
+                        loadAllTasks(); // 重新加载任务列表
+                    } else {
+                        console.error('添加任务失败:', await response.text());
+                        showErrorToast('添加任务失败');
+                    }
+                } else {
+                    // AI解析失败，使用原始文本创建任务
+                    const response = await fetch(`${API_BASE_URL}/tasks`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title: taskText,
+                            description: '',
+                            status: 'todo',
+                            priority: 'medium',
+                            tags: [],
+                            isImportant: false,
+                            isUrgent: false
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        elements.quickTaskInput.value = '';
+                        showSuccessToast(`已创建任务：${taskText}`);
+                        loadAllTasks();
+                    } else {
+                        console.error('添加任务失败:', await response.text());
+                        showErrorToast('添加任务失败');
+                    }
+                }
+            } catch (error) {
+                console.error('添加任务失败:', error);
+                // 如果API调用失败，使用本地模拟数据
+                console.log('使用本地模拟数据添加任务');
+                elements.quickTaskInput.value = '';
+                loadAllTasks();
+            }
+        }
+        
+        // 加载AI助手页面
+        function loadAIPage() {
+            elements.contentArea.innerHTML = `
+                <div class="ai-assistant-page">
+                    <div class="ai-header">
+                        <span class="icon icon-ai"></span>
+                        <h2>AI助手</h2>
+                    </div>
+                    
+                    <div class="ai-welcome mb-6">
+                        <h3>你好！我是你的AI任务助手</h3>
+                        <ul>
+                            <li>智能创建任务（例如："明天下午3点开会"）</li>
+                            <li>分析任务优先级</li>
+                            <li>提供时间管理建议</li>
+                            <li>优化任务安排</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="ai-chat-history" id="ai-chat-history">
+                        <div class="ai-message assistant">
+                            <div class="message-content">
+                                你好！我是你的AI任务助手，有什么可以帮助你的吗？
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-input-section">
+                        <div class="ai-input-container">
+                            <textarea 
+                                class="ai-input" 
+                                placeholder="输入你的问题或指令..."
+                                rows="3"
+                                id="ai-input"
+                            ></textarea>
+                            <div class="ai-input-footer">
+                                <div class="ai-example">
+                                    试试："创建明天下午3点的重要会议任务"
+                                </div>
+                                <button class="ai-send-btn" id="ai-send-btn">
+                                    <span>发送</span>
+                                    <span class="icon icon-plus"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 绑定AI发送按钮事件
+            document.getElementById('ai-send-btn').addEventListener('click', sendAIMessage);
+            document.getElementById('ai-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendAIMessage();
+                }
+            });
+        }
+        
+        // 发送AI消息
+        async function sendAIMessage() {
+            const aiInput = document.getElementById('ai-input');
+            const chatHistory = document.getElementById('ai-chat-history');
+            const message = aiInput.value.trim();
+            if (!message) return;
+            
+            // 添加用户消息到聊天历史
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'ai-message user';
+            userMessageDiv.innerHTML = `
+                <div class="message-content">
+                    ${message}
+                </div>
+            `;
+            chatHistory.appendChild(userMessageDiv);
+            
+            // 清空输入框
+            aiInput.value = '';
+            
+            // 显示加载状态
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'ai-message assistant loading';
+            loadingDiv.innerHTML = `
+                <div class="message-content">
+                    <span class="typing-indicator">AI正在思考...</span>
+                </div>
+            `;
+            chatHistory.appendChild(loadingDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            try {
+                // 调用AI获取回复
+                const systemPrompt = '你是一个AI任务管理助手，能够理解自然语言并帮助用户创建、管理和分析任务。你可以：1. 智能创建任务（例如："明天下午3点开会"）；2. 分析任务优先级；3. 提供时间管理建议；4. 优化任务安排。请使用友好、专业的语言回答用户的问题。';
+                const response = await callDeepSeekAPI(`${systemPrompt}\n\n用户：${message}`);
+                
+                // 移除加载状态
+                loadingDiv.remove();
+                
+                // 添加AI回复到聊天历史
+                const assistantMessageDiv = document.createElement('div');
+                assistantMessageDiv.className = 'ai-message assistant';
+                assistantMessageDiv.innerHTML = `
+                    <div class="message-content">
+                        ${response}
+                    </div>
+                `;
+                chatHistory.appendChild(assistantMessageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                
+                // 检查是否需要创建任务
+                if (message.includes('创建') || message.includes('添加') || message.includes('新建')) {
+                    try {
+                        const taskData = await parseTaskByAI(message);
+                        if (taskData) {
+                            const taskResponse = await fetch(`${API_BASE_URL}/tasks`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(taskData)
+                            });
+                            
+                            if (taskResponse.ok) {
+                                showSuccessToast(`已创建任务：${taskData.title}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('自动创建任务失败:', error);
+                    }
+                }
+            } catch (error) {
+                console.error('AI回复失败:', error);
+                loadingDiv.remove();
+                
+                // 显示错误消息
+                const errorMessageDiv = document.createElement('div');
+                errorMessageDiv.className = 'ai-message assistant error';
+                errorMessageDiv.innerHTML = `
+                    <div class="message-content">
+                        抱歉，AI服务暂时不可用，请稍后再试。
+                    </div>
+                `;
+                chatHistory.appendChild(errorMessageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+        }
+        
+        // 加载全部任务
+        async function loadAllTasks() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/tasks`);
+                let tasks = await response.json();
+                
+                // 如果API调用失败或返回空数组，使用模拟数据
+                if (!Array.isArray(tasks) || tasks.length === 0) {
+                    tasks = [];
+                }
+                
+                displayTasks(tasks);
+            } catch (error) {
+                console.error('加载任务失败:', error);
+                // 使用模拟数据
+                displayTasks([]);
+            }
+        }
+        
+        // 显示任务列表
+        function displayTasks(tasks) {
+            if (tasks.length === 0) {
+                elements.tasksSection.innerHTML = `
+                    <div class="no-tasks">
+                        <h3>暂无任务</h3>
+                        <p>开始添加你的第一个任务吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            elements.tasksSection.innerHTML = `
+                <div class="tasks-list">
+                    ${tasks.map(task => `
+                        <div class="task-card">
+                            <div class="task-checkbox" onclick="toggleTaskStatus('${task._id}', ${task.status === 'completed'})">
+                                ${task.status === 'completed' ? '✓' : ''}
+                            </div>
+                            <div class="task-info">
+                                <div class="task-title ${task.status === 'completed' ? 'completed' : ''}">
+                                    ${task.title}
+                                </div>
+                                <div class="task-meta">
+                                    ${task.dueDate ? `<span><span class="icon icon-calendar-small"></span>${new Date(task.dueDate).toLocaleString()}</span>` : ''}
+                                    ${task.tags.length > 0 ? task.tags.map(tag => `<span class="tag tag-${tag.toLowerCase()}">${tag}</span>`).join('') : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // 切换任务状态
+        async function toggleTaskStatus(taskId, isCompleted) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/complete`, {
+                    method: 'PATCH'
+                });
+                
+                if (response.ok) {
+                    loadAllTasks(); // 重新加载任务列表
+                } else {
+                    console.error('更新任务状态失败:', await response.text());
+                }
+            } catch (error) {
+                console.error('更新任务状态失败:', error);
+                // 本地更新UI
+                loadAllTasks();
+            }
+        }
+        
+        // 加载今天的任务
+        function loadTodayTasks() {
+            elements.contentArea.innerHTML = `
+                <div class="tasks-section">
+                    <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">今天的任务</h2>
+                    <div class="no-tasks">
+                        <h3>暂无任务</h3>
+                        <p>今天没有安排任务</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 加载日历视图
+        function loadCalendarView() {
+            elements.contentArea.innerHTML = `
+                <div class="tasks-section">
+                    <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">日历视图</h2>
+                    <div class="no-tasks">
+                        <h3>日历视图</h3>
+                        <p>功能开发中...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 加载看板视图
+        function loadBoardView() {
+            elements.contentArea.innerHTML = `
+                <div class="tasks-section">
+                    <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">看板视图</h2>
+                    <div class="no-tasks">
+                        <h3>看板视图</h3>
+                        <p>功能开发中...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 加载四象限视图
+        async function loadQuadrantView() {
+            try {
+                // 1. 获取所有任务
+                const tasksResponse = await fetch(`${API_BASE_URL}/tasks`);
+                const allTasks = await tasksResponse.json();
+                
+                if (!Array.isArray(allTasks) || allTasks.length === 0) {
+                    elements.contentArea.innerHTML = `
+                        <div class="tasks-section">
+                            <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">四象限视图</h2>
+                            <div class="no-tasks">
+                                <h3>暂无任务</h3>
+                                <p>创建一些任务后，AI会自动帮你分类到四个象限</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 2. 调用AI进行四象限分类
+                let quadrantData;
+                try {
+                    quadrantData = await classifyTasksByAI(allTasks);
+                } catch (error) {
+                    console.error('AI分类失败，使用默认分类:', error);
+                    // AI分类失败时使用默认规则
+                    quadrantData = {
+                        importantUrgent: allTasks.filter(task => task.isImportant && task.isUrgent),
+                        importantNotUrgent: allTasks.filter(task => task.isImportant && !task.isUrgent),
+                        notImportantUrgent: allTasks.filter(task => !task.isImportant && task.isUrgent),
+                        notImportantNotUrgent: allTasks.filter(task => !task.isImportant && !task.isUrgent)
+                    };
+                }
+                
+                // 3. 渲染四象限视图
+                elements.contentArea.innerHTML = `
+                    <div class="tasks-section">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">四象限视图</h2>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100vh - 200px);">
+                            <!-- 第一象限：重要紧急 -->
+                            <div style="background: #fee2e2; border: 2px solid #ef4444; border-radius: 12px; padding: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #991b1b;">🔴 重要紧急</h3>
+                                ${quadrantData.importantUrgent.length > 0 ? quadrantData.importantUrgent.map(task => `
+                                    <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                        <p style="font-weight: 500; margin-bottom: 4px;">${task.title}</p>
+                                        <p style="font-size: 12px; color: #64748b;">${task.dueDate ? new Date(task.dueDate).toLocaleString() : '无截止日期'}</p>
+                                    </div>
+                                `).join('') : '<p style="color: #64748b; font-style: italic;">暂无任务</p>'}
+                            </div>
+                            
+                            <!-- 第二象限：重要不紧急 -->
+                            <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1e40af;">🔵 重要不紧急</h3>
+                                ${quadrantData.importantNotUrgent.length > 0 ? quadrantData.importantNotUrgent.map(task => `
+                                    <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                        <p style="font-weight: 500; margin-bottom: 4px;">${task.title}</p>
+                                        <p style="font-size: 12px; color: #64748b;">${task.dueDate ? new Date(task.dueDate).toLocaleString() : '无截止日期'}</p>
+                                    </div>
+                                `).join('') : '<p style="color: #64748b; font-style: italic;">暂无任务</p>'}
+                            </div>
+                            
+                            <!-- 第三象限：紧急不重要 -->
+                            <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #92400e;">🟡 紧急不重要</h3>
+                                ${quadrantData.notImportantUrgent.length > 0 ? quadrantData.notImportantUrgent.map(task => `
+                                    <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                        <p style="font-weight: 500; margin-bottom: 4px;">${task.title}</p>
+                                        <p style="font-size: 12px; color: #64748b;">${task.dueDate ? new Date(task.dueDate).toLocaleString() : '无截止日期'}</p>
+                                    </div>
+                                `).join('') : '<p style="color: #64748b; font-style: italic;">暂无任务</p>'}
+                            </div>
+                            
+                            <!-- 第四象限：不紧急不重要 -->
+                            <div style="background: #d1fae5; border: 2px solid #10b981; border-radius: 12px; padding: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #065f46;">🟢 不紧急不重要</h3>
+                                ${quadrantData.notImportantNotUrgent.length > 0 ? quadrantData.notImportantNotUrgent.map(task => `
+                                    <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                        <p style="font-weight: 500; margin-bottom: 4px;">${task.title}</p>
+                                        <p style="font-size: 12px; color: #64748b;">${task.dueDate ? new Date(task.dueDate).toLocaleString() : '无截止日期'}</p>
+                                    </div>
+                                `).join('') : '<p style="color: #64748b; font-style: italic;">暂无任务</p>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('加载四象限视图失败:', error);
+                elements.contentArea.innerHTML = `
+                    <div class="tasks-section">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">四象限视图</h2>
+                        <div class="no-tasks">
+                            <h3>加载失败</h3>
+                            <p>请稍后重试</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // 加载番茄专注
+        async function loadTomatoTimer() {
+            try {
+                // 获取任务列表
+                const tasksResponse = await fetch(`${API_BASE_URL}/tasks`);
+                const allTasks = await tasksResponse.json();
+                const todoTasks = Array.isArray(allTasks) ? allTasks.filter(task => task.status === 'todo') : [];
+                
+                // 获取AI提示语
+                let aiPrompt = '保持专注，你可以做到的！';
+                if (todoTasks.length > 0) {
+                    try {
+                        aiPrompt = await getPomodoroPromptByAI(todoTasks[0].title);
+                    } catch (error) {
+                        console.error('获取AI提示语失败:', error);
+                    }
+                }
+                
+                elements.contentArea.innerHTML = `
+                    <div class="tasks-section">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">番茄专注</h2>
+                        
+                        <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+                            <!-- AI提示语 -->
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                                <p style="font-size: 18px; font-weight: 500; margin: 0;">${aiPrompt}</p>
+                            </div>
+                            
+                            <!-- 计时器 -->
+                            <div style="margin-bottom: 32px;">
+                                <div id="timer-display" style="font-size: 80px; font-weight: 700; color: var(--primary); font-family: 'Courier New', monospace; line-height: 1;">
+                                    25:00
+                                </div>
+                            </div>
+                            
+                            <!-- 任务选择 -->
+                            <div style="margin-bottom: 32px;">
+                                <label style="display: block; font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">选择要专注的任务：</label>
+                                <select id="tomato-task-select" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; background: white;">
+                                    ${todoTasks.length > 0 ? todoTasks.map(task => `
+                                        <option value="${task._id}">${task.title}</option>
+                                    `).join('') : '<option value="">暂无待办任务</option>'}
+                                </select>
+                            </div>
+                            
+                            <!-- 控制按钮 -->
+                            <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 24px;">
+                                <button id="start-timer-btn" style="padding: 14px 32px; background: var(--primary); color: white; border: none; border-radius: var(--radius-full); font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition);">
+                                    开始专注
+                                </button>
+                                <button id="pause-timer-btn" style="padding: 14px 32px; background: var(--warning); color: white; border: none; border-radius: var(--radius-full); font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); display: none;">
+                                    暂停
+                                </button>
+                                <button id="reset-timer-btn" style="padding: 14px 32px; background: var(--bg-tertiary); color: var(--text-primary); border: 2px solid var(--border-color); border-radius: var(--radius-full); font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition);">
+                                    重置
+                                </button>
+                            </div>
+                            
+                            <!-- 统计信息 -->
+                            <div style="display: flex; justify-content: center; gap: 32px; color: var(--text-secondary); font-size: 14px;">
+                                <div>
+                                    <span style="font-weight: 600;">今日专注：</span>
+                                    <span id="today-pomodoros">0</span> 个番茄
+                                </div>
+                                <div>
+                                    <span style="font-weight: 600;">总专注时长：</span>
+                                    <span id="total-focus-time">0</span> 分钟
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 绑定按钮事件
+                let timerInterval = null;
+                let timeLeft = 25 * 60; // 25分钟
+                let isRunning = false;
+                
+                const timerDisplay = document.getElementById('timer-display');
+                const startBtn = document.getElementById('start-timer-btn');
+                const pauseBtn = document.getElementById('pause-timer-btn');
+                const resetBtn = document.getElementById('reset-timer-btn');
+                const taskSelect = document.getElementById('tomato-task-select');
+                
+                function updateDisplay() {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+                
+                startBtn.addEventListener('click', () => {
+                    if (!isRunning) {
+                        isRunning = true;
+                        startBtn.style.display = 'none';
+                        pauseBtn.style.display = 'inline-block';
+                        
+                        timerInterval = setInterval(() => {
+                            timeLeft--;
+                            updateDisplay();
+                            
+                            if (timeLeft <= 0) {
+                                clearInterval(timerInterval);
+                                isRunning = false;
+                                startBtn.style.display = 'inline-block';
+                                pauseBtn.style.display = 'none';
+                                showSuccessToast('🎉 恭喜！完成了一个番茄钟！');
+                                
+                                // 更新统计
+                                const todayPomodoros = parseInt(document.getElementById('today-pomodoros').textContent) + 1;
+                                const totalFocusTime = parseInt(document.getElementById('total-focus-time').textContent) + 25;
+                                document.getElementById('today-pomodoros').textContent = todayPomodoros;
+                                document.getElementById('total-focus-time').textContent = totalFocusTime;
+                            }
+                        }, 1000);
+                    }
+                });
+                
+                pauseBtn.addEventListener('click', () => {
+                    if (isRunning) {
+                        isRunning = false;
+                        clearInterval(timerInterval);
+                        startBtn.style.display = 'inline-block';
+                        pauseBtn.style.display = 'none';
+                        startBtn.textContent = '继续专注';
+                    }
+                });
+                
+                resetBtn.addEventListener('click', () => {
+                    isRunning = false;
+                    clearInterval(timerInterval);
+                    timeLeft = 25 * 60;
+                    updateDisplay();
+                    startBtn.style.display = 'inline-block';
+                    pauseBtn.style.display = 'none';
+                    startBtn.textContent = '开始专注';
+                });
+                
+                // 任务选择变化时更新AI提示语
+                taskSelect.addEventListener('change', async (e) => {
+                    const selectedTaskId = e.target.value;
+                    const selectedTask = todoTasks.find(task => task._id === selectedTaskId);
+                    if (selectedTask) {
+                        try {
+                            const newPrompt = await getPomodoroPromptByAI(selectedTask.title);
+                            const promptElement = elements.contentArea.querySelector('.tasks-section > div > div:first-child p');
+                            if (promptElement) {
+                                promptElement.textContent = newPrompt;
+                            }
+                        } catch (error) {
+                            console.error('获取AI提示语失败:', error);
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('加载番茄专注失败:', error);
+                elements.contentArea.innerHTML = `
+                    <div class="tasks-section">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">番茄专注</h2>
+                        <div class="no-tasks">
+                            <h3>加载失败</h3>
+                            <p>请稍后重试</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // 加载习惯打卡
+        function loadHabitTracker() {
+            elements.contentArea.innerHTML = `
+                <div class="tasks-section">
+                    <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">习惯打卡</h2>
+                    <div class="no-tasks">
+                        <h3>习惯打卡</h3>
+                        <p>功能开发中...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 加载数据统计
+        async function loadStatistics() {
+            try {
+                // 获取所有任务
+                const tasksResponse = await fetch(`${API_BASE_URL}/tasks`);
+                const allTasks = await tasksResponse.json();
+                
+                if (!Array.isArray(allTasks)) {
+                    allTasks = [];
+                }
+                
+                // 计算统计数据
+                const stats = {
+                    totalTasks: allTasks.length,
+                    completedTasks: allTasks.filter(task => task.status === 'completed').length,
+                    todoTasks: allTasks.filter(task => task.status === 'todo').length,
+                    inProgressTasks: allTasks.filter(task => task.status === 'in-progress').length,
+                    importantTasks: allTasks.filter(task => task.isImportant).length,
+                    urgentTasks: allTasks.filter(task => task.isUrgent).length,
+                    highPriorityTasks: allTasks.filter(task => task.priority === 'high' || task.priority === 'urgent').length,
+                    tasksByTag: {},
+                    completionRate: 0
+                };
+                
+                // 按标签统计
+                allTasks.forEach(task => {
+                    task.tags.forEach(tag => {
+                        stats.tasksByTag[tag] = (stats.tasksByTag[tag] || 0) + 1;
+                    });
+                });
+                
+                // 计算完成率
+                if (stats.totalTasks > 0) {
+                    stats.completionRate = Math.round((stats.completedTasks / stats.totalTasks) * 100);
+                }
+                
+                // 获取AI总结
+                let aiSummary = '暂无数据';
+                try {
+                    aiSummary = await getStatsSummaryByAI(stats);
+                } catch (error) {
+                    console.error('获取AI总结失败:', error);
+                    aiSummary = '数据统计完成，继续保持高效工作！';
+                }
+                
+                // 渲染统计页面
+                elements.contentArea.innerHTML = `
+                    <div class="tasks-section">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">数据统计</h2>
+                        
+                        <!-- AI总结 -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <span style="font-size: 24px;">🤖</span>
+                                <h3 style="margin: 0; font-size: 16px; font-weight: 600;">AI智能分析</h3>
+                            </div>
+                            <p style="font-size: 15px; line-height: 1.6; margin: 0;">${aiSummary}</p>
+                        </div>
+                        
+                        <!-- 统计卡片 -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px;">
+                            <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">总任务数</div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--primary);">${stats.totalTasks}</div>
+                            </div>
+                            
+                            <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">已完成</div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--success);">${stats.completedTasks}</div>
+                            </div>
+                            
+                            <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">待办中</div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--warning);">${stats.todoTasks}</div>
+                            </div>
+                            
+                            <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">进行中</div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--info);">${stats.inProgressTasks}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 完成率 -->
+                        <div style="background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 32px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">任务完成率</h3>
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div style="flex: 1;">
+                                    <div style="height: 20px; background: var(--bg-tertiary); border-radius: 10px; overflow: hidden; margin-bottom: 8px;">
+                                        <div style="height: 100%; background: linear-gradient(90deg, var(--success) 0%, #34d399 100%); transition: width 0.5s ease; width: ${stats.completionRate}%;"></div>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-secondary);">
+                                        <span>已完成 ${stats.completedTasks} 个</span>
+                                        <span>${stats.completionRate}%</span>
+                                    </div>
+                                </div>
+                                <div style="font-size: 48px; font-weight: 700; color: var(--success);">${stats.completionRate}%</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 优先级分布 -->
+                        <div style="background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 32px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">优先级分布</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                                <div style="text-align: center; padding: 16px; background: #fee2e2; border-radius: 8px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #ef4444; margin-bottom: 4px;">${allTasks.filter(task => task.priority === 'urgent').length}</div>
+                                    <div style="font-size: 12px; color: #991b1b;">紧急</div>
+                                </div>
+                                <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">${allTasks.filter(task => task.priority === 'high').length}</div>
+                                    <div style="font-size: 12px; color: #92400e;">高</div>
+                                </div>
+                                <div style="text-align: center; padding: 16px; background: #dbeafe; border-radius: 8px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #3b82f6; margin-bottom: 4px;">${allTasks.filter(task => task.priority === 'medium').length}</div>
+                                    <div style="font-size: 12px; color: #1e40af;">中</div>
+                                </div>
+                                <div style="text-align: center; padding: 16px; background: #d1fae5; border-radius: 8px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #10b981; margin-bottom: 4px;">${allTasks.filter(task => task.priority === 'low').length}</div>
+                                    <div style="font-size: 12px; color: #065f46;">低</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 标签统计 -->
+                        ${Object.keys(stats.tasksByTag).length > 0 ? `
+                        <div style="background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">标签统计</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                                ${Object.entries(stats.tasksByTag).map(([tag, count]) => `
+                                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 20px;">
+                                        <span style="font-weight: 500;">${tag}</span>
+                                        <span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px;">${count}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+                elements.contentArea.innerHTML = `
+                    <div class="tasks-section">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">数据统计</h2>
+                        <div class="no-tasks">
+                            <h3>加载失败</h3>
+                            <p>请稍后重试</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // 初始化应用
+        function initApp() {
+            loadAllTasks();
+        }
+        
+        // 初始化应用
+        initApp();
+    </script>
+</body>
+</html>
