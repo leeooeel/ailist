@@ -1,0 +1,17 @@
+{
+  "builds": [
+    {
+      "src": "task-management-app.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
