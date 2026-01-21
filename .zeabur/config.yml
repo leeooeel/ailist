@@ -1,25 +1,24 @@
 # Zeabur Deployment Configuration
 
 # 应用类型
-type: static
+type: fullstack
 
 # 构建命令
-build: ""
+build: "cd backend && npm install"
 
-# 输出目录
-output: "."
-
-# 静态文件服务配置
-static:  
-  # 根目录
-  root: "."
-  # 索引文件
-  index: "task-management-app.html"
+# 启动命令
+start: "./start.sh"
 
 # 环境变量
 env:
   - name: NODE_ENV
     value: production
+  - name: PORT
+    value: "8080"
+  - name: MONGODB_URI
+    value: "mongodb://localhost:27017/task-manager"
+  - name: AI_SERVICE_TYPE
+    value: "deepseek"
 
 # 端口配置
 port: 8080
