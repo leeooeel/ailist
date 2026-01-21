@@ -2,13 +2,16 @@
 
 :8080 {
 	# 设置根目录
-	root * .
+	root * /app
 	
-	# 设置默认索引文件并启用目录浏览
-	file_server {
-		index task-management-app.html
-		browse
+	# 将根路径重定向到主应用文件
+	@index {
+		path /
 	}
+	redir @index /task-management-app.html permanent
+	
+	# 静态文件服务
+	file_server
 	
 	# 配置日志
 	log {
