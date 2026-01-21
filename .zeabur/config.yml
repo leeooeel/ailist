@@ -1,0 +1,25 @@
+# Zeabur Deployment Configuration
+
+# 应用类型
+type: static
+
+# 构建命令
+build: ""
+
+# 输出目录
+output: "."
+
+# 静态文件服务配置
+static:  
+  # 根目录
+  root: "."
+  # 索引文件
+  index: "task-management-app.html"
+
+# 环境变量
+env:
+  - name: NODE_ENV
+    value: production
+
+# 端口配置
+port: 8080

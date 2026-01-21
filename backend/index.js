@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 
 // 中间件配置
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:8080'],
+  origin: '*', // 允许所有域名访问，适配Zeabur部署环境
   credentials: true
 }));
 app.use(bodyParser.json());

@@ -1,0 +1,28 @@
+# Caddy Configuration for Zeabur Deployment
+
+:8080 {
+    # 设置根目录
+    root * .
+    
+    # 设置默认索引文件
+    file_server {
+        index task-management-app.html
+    }
+    
+    # 启用目录浏览（可选）
+    file_server browse
+    
+    # 配置日志
+    log {
+        level info
+        format json
+    }
+    
+    # 配置压缩
+    encode gzip zstd
+    
+    # 配置缓存
+    header {
+        Cache-Control "public, max-age=3600"
+    }
+}

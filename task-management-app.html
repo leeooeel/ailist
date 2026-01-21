@@ -969,7 +969,10 @@
 
     <script>
         // API配置
-        const API_BASE_URL = 'http://localhost:3001/api';
+        // API基础URL配置 - 自动适配开发和生产环境
+        const API_BASE_URL = window.location.origin.includes('localhost') 
+            ? 'http://localhost:3001/api' 
+            : `${window.location.origin}/api`;
         
         // AI服务函数
         async function callDeepSeekAPI(userMessage) {
