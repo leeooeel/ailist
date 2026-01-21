@@ -2,7 +2,7 @@
 
 # 启动后端服务
 cd /app/backend
-npm install &
+npm install --production &
 BACKEND_PID=$!
 
 # 启动Caddy web服务器

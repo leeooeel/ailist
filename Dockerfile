@@ -10,7 +10,7 @@ WORKDIR /app
 COPY . .
 
 # 阶段2：后端构建
-FROM node:18-alpine as backend
+FROM node:20-alpine as backend
 
 # 设置工作目录
 WORKDIR /app/backend
