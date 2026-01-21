@@ -10,6 +10,12 @@
 	}
 	redir @index /task-management-app.html permanent
 	
+	# API代理配置 - 将/api请求代理到后端3001端口
+	@api {
+		path /api/*
+	}
+	reverse_proxy @api localhost:3001
+	
 	# 静态文件服务
 	file_server
 	
