@@ -257,7 +257,12 @@ const MessageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', MessageSchema);
 
-// 健康检查
+// 健康检查 - 支持Zeabur平台健康检查
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'AI Task Manager API is running', timestamp: new Date().toISOString() });
+});
+
+// API健康检查
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'AI Task Manager API is running' });
 });

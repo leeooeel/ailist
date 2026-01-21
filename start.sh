@@ -1,56 +1,65 @@
 #!/bin/sh
 
-# 改进的启动脚本 - 2026-01-21
+# Zeabur专用启动脚本 - 2026-01-21
 
-# 输出日志
+# 输出日志（Zeabur日志系统兼容）
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-log "Starting AI Task Management System..."
+log "=== Starting AI Task Management System on Zeabur ==="
 
-# 确保在根目录启动
-cd /
+# 进入应用根目录
+cd /app
+log "Working directory: $(pwd)"
 
 # 1. 安装后端依赖
-log "Installing backend dependencies..."
-cd /app/backend
+log "1. Installing backend dependencies..."
+cd backend
 npm install --omit=dev
 if [ $? -ne 0 ]; then
     log "ERROR: Failed to install backend dependencies"
     exit 1
 fi
-log "Backend dependencies installed successfully"
+log "✅ Backend dependencies installed successfully"
 
 # 2. 启动后端服务（非阻塞）
-log "Starting backend service on port 3001..."
+log "2. Starting backend service..."
 node index.js &
 BACKEND_PID=$!
-log "Backend service started with PID: $BACKEND_PID"
+log "✅ Backend service started with PID: $BACKEND_PID"
 
-# 3. 等待后端服务启动完成（最多等待10秒）
-log "Waiting for backend service to start..."
+# 3. 等待后端服务启动完成（最多等待15秒）
+log "3. Waiting for backend service to start..."
 BACKEND_READY=0
-for i in {1..10}; do
-    if curl -s http://localhost:3001/api/health > /dev/null; then
+for i in {1..15}; do
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/health | grep -q "200"; then
         BACKEND_READY=1
+        log "✅ Backend service is ready!"
         break
     fi
-    log "Backend not ready yet, waiting 1 second..."
+    log "⏳ Backend not ready yet, waiting 1 second... (Attempt $i/15)"
     sleep 1
 done
 
 if [ $BACKEND_READY -eq 0 ]; then
-    log "WARNING: Backend service did not start within 10 seconds, continuing anyway..."
+    log "⚠️  WARNING: Backend service did not start within 15 seconds, continuing anyway..."
 fi
 
-# 4. 启动Caddy web服务器（在项目根目录）
-log "Starting Caddy web server on port 8080..."
+# 4. 启动Caddy web服务器
+log "4. Starting Caddy web server..."
 cd /app
+log "Caddyfile location: /etc/caddy/Caddyfile"
+log "Static files root: /app"
+log "Caddy will start on port 8080"
+
+# 启动Caddy（前台运行，Zeabur会管理进程）
+log "=== System startup complete! Application is running ==="
 caddy run --config /etc/caddy/Caddyfile
 
-# 5. 等待后端服务
-log "Waiting for backend service to exit..."
-wait $BACKEND_PID
-log "Backend service exited"
+# 如果Caddy退出，结束后端进程
+log "⚠️  Caddy process exited, shutting down backend..."
+kill $BACKEND_PID 2>/dev/null || true
+log "=== System shutdown complete ==="
+
 
