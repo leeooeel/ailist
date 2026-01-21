@@ -1,6 +1,11 @@
 # Caddy Configuration for Zeabur Deployment
 
 :8080 {
+	# API 请求代理到后端服务
+	@api {
+		path /api/*
+	}
+	reverse_proxy @api localhost:3001
 	# 设置根目录
 	root * /app
 	
@@ -9,12 +14,6 @@
 		path /
 	}
 	redir @index /task-management-app.html permanent
-	
-	# API代理配置 - 将/api请求代理到后端3001端口
-	@api {
-		path /api/*
-	}
-	reverse_proxy @api localhost:3001
 	
 	# 静态文件服务
 	file_server
