@@ -4,13 +4,11 @@
     # 设置根目录
     root * .
     
-    # 设置默认索引文件
+    # 设置默认索引文件并启用目录浏览
     file_server {
         index task-management-app.html
+        browse
     }
-    
-    # 启用目录浏览（可选）
-    file_server browse
     
     # 配置日志
     log {
